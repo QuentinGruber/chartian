@@ -25,7 +25,9 @@ export class PieChartView extends BasesView {
 			return `  "${label.replace(/"/g, "'")}" : ${group.entries.length}`;
 		});
 		const config = this.config as any;
-		const title = this.config.getDisplayName(config.groupBy.property);
+		const title = this.config
+			.getDisplayName(config.groupBy.property)
+			.replace(/"/g, "'");
 		const source = [`pie title ${title}`, ...lines].join('\n');
 
 		try {

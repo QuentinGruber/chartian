@@ -5,6 +5,7 @@ import {
 	SampleSettingTab,
 } from './settings';
 import { PieChartView } from './piechart';
+import { BarChartView } from './barchart';
 
 export default class BaseChartsPlugin extends Plugin {
 	settings!: MyPluginSettings;
@@ -19,6 +20,14 @@ export default class BaseChartsPlugin extends Plugin {
 			icon: 'columns',
 			factory: (controller, scrollEl) => {
 				return new PieChartView(controller, scrollEl);
+			},
+		});
+
+		this.registerBasesView('BarChart', {
+			name: 'BarChart',
+			icon: 'chart-column',
+			factory: (controller, scrollEl) => {
+				return new BarChartView(controller, scrollEl);
 			},
 		});
 	}

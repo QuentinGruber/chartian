@@ -1,0 +1,12 @@
+.piechart-view,
+.barchart-view {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.piechart-view svg,
+.barchart-view svg {
+	max-width: 100%;
+	height: auto;
+}
