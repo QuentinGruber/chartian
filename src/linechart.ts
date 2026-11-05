@@ -5,8 +5,8 @@ import {
 	BasesView,
 	BasesViewConfig,
 	QueryController,
-	loadMermaid,
 } from 'obsidian';
+import { renderMermaid, showChartError } from './mermaid';
 
 // Unwraps Bases Value objects ({ getValue() }) and wrappers like { data: 225 }
 function unwrap(v: unknown): unknown {
@@ -38,6 +38,22 @@ function toNumber(v: unknown): number | null {
 	return null;
 }
 
+function toLabel(v: unknown): string {
+	if (typeof v === 'string') return v;
+	if (typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint')
+		return String(v);
+	if (v == null) return 'Empty';
+	if (v instanceof Date) return v.toISOString();
+	if (typeof v === 'object') {
+		// keep the value's own string form (e.g. date values); only fall back
+		// to JSON when it would be the useless "[object Object]"
+		// eslint-disable-next-line @typescript-eslint/no-base-to-string -- object values with a custom toString (e.g. dates) must keep their string form
+		const s = String(v);
+		return s === '[object Object]' ? (JSON.stringify(v) ?? 'Empty') : s;
+	}
+	return 'Empty';
+}
+
 function sortLabels(labels: string[]): string[] {
 	const allNumeric = labels.every((l) => toNumber(l) !== null);
 	if (allNumeric) {
@@ -55,57 +71,61 @@ export class LineChartView extends BasesView {
 
 	private containerEl: HTMLElement;
 
-	static getViewOptions(config: BasesViewConfig): BasesAllOptions[] {
-		return [
-			{
-				displayName: 'X axis',
-				type: 'property',
-				key: 'xProperty',
-				placeholder: 'Select property',
-			},
-			{
-				displayName: 'X count',
-				type: 'toggle',
-				key: 'xCount',
-				default: false,
-			},
-			{
-				displayName: 'Y axis',
-				type: 'property',
-				key: 'yProperty',
-				placeholder: 'Select property',
-			},
-			{
-				displayName: 'Y count',
-				type: 'toggle',
-				key: 'yCount',
-				default: false,
-			},
-			{
-				displayName: 'Max X values (0 = auto)',
-				type: 'slider',
-				key: 'xMaxValue',
-				default: 0,
-				min: 0,
-				step: 1,
-			},
-			{
-				displayName: 'Max Y value (0 = auto)',
-				type: 'slider',
-				key: 'yMaxValue',
-				default: 0,
-				min: 0,
-				step: 1,
-			},
-		];
-	}
+	static readonly getViewOptions = (
+		_config: BasesViewConfig,
+	): BasesAllOptions[] => [
+		{
+			displayName: 'X axis',
+			type: 'property',
+			key: 'xProperty',
+			placeholder: 'Select property',
+		},
+		{
+			displayName: 'X count',
+			type: 'toggle',
+			key: 'xCount',
+			default: false,
+		},
+		{
+			displayName: 'Y axis',
+			type: 'property',
+			key: 'yProperty',
+			placeholder: 'Select property',
+		},
+		{
+			displayName: 'Y count',
+			type: 'toggle',
+			key: 'yCount',
+			default: false,
+		},
+		{
+			displayName: 'Max X values (0 = auto)',
+			type: 'slider',
+			key: 'xMaxValue',
+			default: 0,
+			min: 0,
+			step: 1,
+		},
+		{
+			displayName: 'Max Y value (0 = auto)',
+			type: 'slider',
+			key: 'yMaxValue',
+			default: 0,
+			min: 0,
+			step: 1,
+		},
+	];
 
 	constructor(controller: QueryController, scrollEl: HTMLElement) {
 		super(controller);
 		this.containerEl = scrollEl.createDiv({ cls: 'linechart-view' });
 	}
 
-	async onDataUpdated(): Promise<void> {
+	onDataUpdated(): void {
+		void this.render();
+	}
+
+	private async render(): Promise<void> {
 		// ungrouped data comes back as a single group with an empty key,
 		// which simply renders as one line
 		const groups = this.data.groupedData;
@@ -139,8 +159,7 @@ export class LineChartView extends BasesView {
 		for (const group of groups) {
 			const map = new Map<string, number>();
 			for (const entry of group.entries) {
-				const rawX = rawValue(entry, xProp);
-				const label = rawX == null ? 'Empty' : String(rawX);
+				const label = toLabel(rawValue(entry, xProp));
 				let y = 1;
 				if (!countMode) {
 					y = toNumber(rawValue(entry, yProp)) ?? 0;
@@ -151,6 +170,8 @@ export class LineChartView extends BasesView {
 			lineMaps.push(map);
 			lineNames.push(group.hasKey() ? group.key!.toString() : 'All');
 		}
+
+		// X maxValue: keep the top N labels by total value, aggregate the rest into "Other"
 		let labels = sortLabels([...totals.keys()]);
 		if (xMaxValue > 0 && labels.length > xMaxValue) {
 			const byTotal = [...totals.keys()].sort(
@@ -179,9 +200,10 @@ export class LineChartView extends BasesView {
 		const maxY = yMaxValue > 0 ? yMaxValue : Math.max(...allValues, 1);
 
 		const xTitle = this.config.getDisplayName(xProp).replace(/"/g, "'");
-		const yTitle = countMode
-			? 'Entries'
-			: this.config.getDisplayName(yProp!).replace(/"/g, "'");
+		const yTitle =
+			countMode || !yProp
+				? 'Entries'
+				: this.config.getDisplayName(yProp).replace(/"/g, "'");
 		const groupByProp = (
 			this.config as { groupBy?: { property?: BasesPropertyId } }
 		).groupBy?.property;
@@ -203,29 +225,10 @@ export class LineChartView extends BasesView {
 		];
 
 		try {
-			const mermaid = await loadMermaid();
-
-			mermaid.initialize({
-				startOnLoad: false,
-				theme: document.body.hasClass('theme-dark')
-					? 'dark'
-					: 'default',
-			});
-
 			const source = ['xychart-beta', ...body].join('\n');
-			const { svg } = await mermaid.render(
-				`linechart-${Date.now()}`,
-				source,
-			);
-
-			this.containerEl.empty();
-			this.containerEl.insertAdjacentHTML('beforeend', svg);
+			await renderMermaid(this.containerEl, source);
 		} catch (e) {
-			console.error(e);
-			this.containerEl.empty();
-			this.containerEl.createEl('p', {
-				text: `Mermaid error ${e}`,
-			});
+			showChartError(this.containerEl, e);
 		}
 	}
 }

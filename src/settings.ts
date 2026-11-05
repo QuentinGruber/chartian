@@ -1,11 +1,11 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab } from 'obsidian';
 import BaseChartsPlugin from './main';
 
-export interface MyPluginSettings {}
+export type MyPluginSettings = Record<string, unknown>;
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {};
 
-export class SampleSettingTab extends PluginSettingTab {
+export class ChartianSettingTab extends PluginSettingTab {
 	plugin: BaseChartsPlugin;
 
 	constructor(app: App, plugin: BaseChartsPlugin) {

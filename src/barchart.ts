@@ -1,15 +1,25 @@
-import { BasesView, QueryController, loadMermaid } from 'obsidian';
+import {
+	BasesPropertyId,
+	BasesView,
+	QueryController,
+} from 'obsidian';
+import { renderMermaid, showChartError } from './mermaid';
 
 export class BarChartView extends BasesView {
 	type = 'barchart-view';
 
 	private containerEl: HTMLElement;
+
 	constructor(controller: QueryController, scrollEl: HTMLElement) {
 		super(controller);
 		this.containerEl = scrollEl.createDiv({ cls: 'barchart-view' });
 	}
 
-	async onDataUpdated(): Promise<void> {
+	onDataUpdated(): void {
+		void this.render();
+	}
+
+	private async render(): Promise<void> {
 		const groups = this.data.groupedData;
 
 		if (!groups.some((g) => g.hasKey())) {
@@ -28,10 +38,12 @@ export class BarChartView extends BasesView {
 			values.push(group.entries.length);
 		}
 
-		const config = this.config as any;
-		const title = this.config
-			.getDisplayName(config.groupBy.property)
-			.replace(/"/g, "'");
+		const groupByProp = (
+			this.config as { groupBy?: { property?: BasesPropertyId } }
+		).groupBy?.property;
+		const title = (
+			groupByProp ? this.config.getDisplayName(groupByProp) : 'Chart'
+		).replace(/"/g, "'");
 		const maxValue = Math.max(...values, 1);
 		const body = [
 			`    title "${title}"`,
@@ -41,26 +53,10 @@ export class BarChartView extends BasesView {
 		];
 
 		try {
-			const mermaid = await loadMermaid();
-
-			mermaid.initialize({
-				startOnLoad: false,
-				theme: document.body.hasClass('theme-dark')
-					? 'dark'
-					: 'default',
-			});
-
 			const source = ['xychart-beta', ...body].join('\n');
-			const { svg } = await mermaid.render(`barchart`, source);
-
-			this.containerEl.empty();
-			this.containerEl.insertAdjacentHTML('beforeend', svg);
+			await renderMermaid(this.containerEl, source);
 		} catch (e) {
-			console.error(e);
-			this.containerEl.empty();
-			this.containerEl.createEl('p', {
-				text: `Mermaid error ${e}`,
-			});
+			showChartError(this.containerEl, e);
 		}
 	}
 }

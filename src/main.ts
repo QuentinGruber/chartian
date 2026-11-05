@@ -2,7 +2,7 @@ import { Plugin } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
 	MyPluginSettings,
-	SampleSettingTab,
+	ChartianSettingTab,
 } from './settings';
 import { PieChartView } from './piechart';
 import { BarChartView } from './barchart';
@@ -14,7 +14,7 @@ export default class BaseChartsPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new ChartianSettingTab(this.app, this));
 
 		this.registerBasesView('PieChart', {
 			name: 'PieChart',
