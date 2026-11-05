@@ -6,6 +6,7 @@ import {
 } from './settings';
 import { PieChartView } from './piechart';
 import { BarChartView } from './barchart';
+import { LineChartView } from './linechart';
 
 export default class BaseChartsPlugin extends Plugin {
 	settings!: MyPluginSettings;
@@ -29,6 +30,15 @@ export default class BaseChartsPlugin extends Plugin {
 			factory: (controller, scrollEl) => {
 				return new BarChartView(controller, scrollEl);
 			},
+		});
+
+		this.registerBasesView('LineChart', {
+			name: 'LineChart',
+			icon: 'chart-column',
+			factory: (controller, scrollEl) => {
+				return new LineChartView(controller, scrollEl);
+			},
+			options: LineChartView.getViewOptions,
 		});
 	}
 

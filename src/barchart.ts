@@ -34,7 +34,7 @@ export class BarChartView extends BasesView {
 			.replace(/"/g, "'");
 		const maxValue = Math.max(...values, 1);
 		const body = [
-			`    title ${title}`,
+			`    title "${title}"`,
 			`    x-axis [${labels.join(', ')}]`,
 			`    y-axis "Entries" 0 --> ${maxValue}`,
 			`    bar [${values.join(', ')}]`,

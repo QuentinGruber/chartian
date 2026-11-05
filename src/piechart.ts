@@ -28,7 +28,7 @@ export class PieChartView extends BasesView {
 		const title = this.config
 			.getDisplayName(config.groupBy.property)
 			.replace(/"/g, "'");
-		const source = [`pie title ${title}`, ...lines].join('\n');
+		const source = [`pie title "${title}"`, ...lines].join('\n');
 
 		try {
 			const mermaid = await loadMermaid();
