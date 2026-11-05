@@ -2,7 +2,7 @@
 	"id": "Chartian",
 	"name": "Chartian",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.10.0",
 	"description": "I like charts",
 	"author": "QuentinGruber",
 	"authorUrl": "https://quentingruber.dev",
