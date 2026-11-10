@@ -7,6 +7,7 @@ import {
 import { PieChartView } from './piechart';
 import { BarChartView } from './barchart';
 import { LineChartView } from './linechart';
+import { NumberDisplayView } from './numberdisplay';
 
 export default class BaseChartsPlugin extends Plugin {
 	settings!: MyPluginSettings;
@@ -39,6 +40,15 @@ export default class BaseChartsPlugin extends Plugin {
 				return new LineChartView(controller, scrollEl);
 			},
 			options: LineChartView.getViewOptions,
+		});
+
+		this.registerBasesView('NumberDisplay', {
+			name: 'NumberDisplay',
+			icon: 'hash',
+			factory: (controller, scrollEl) => {
+				return new NumberDisplayView(controller, scrollEl);
+			},
+			options: NumberDisplayView.getViewOptions,
 		});
 	}
 
