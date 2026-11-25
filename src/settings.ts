@@ -1,4 +1,4 @@
-import { App, PluginSettingTab } from 'obsidian';
+import { App, PluginSettingTab, SettingDefinition } from 'obsidian';
 import BaseChartsPlugin from './main';
 
 export type MyPluginSettings = Record<string, unknown>;
@@ -11,6 +11,10 @@ export class ChartianSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: BaseChartsPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	getSettingDefinitions(): SettingDefinition[] {
+		return [];
 	}
 
 	display(): void {
