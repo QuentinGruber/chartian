@@ -3,7 +3,7 @@
 	"name": "Chartian",
 	"version": "0.1.0",
 	"minAppVersion": "1.10.0",
-	"description": "Charts and ways to display data from obsidian bases",
+	"description": "Charts and ways to display data from bases.",
 	"author": "QuentinGruber",
 	"authorUrl": "https://github.com/QuentinGruber",
 	"isDesktopOnly": false
