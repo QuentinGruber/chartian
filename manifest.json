@@ -1,11 +1,10 @@
 {
-	"id": "Chartian",
+	"id": "chartian",
 	"name": "Chartian",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"minAppVersion": "1.10.0",
-	"description": "I like charts",
+	"description": "Charts and ways to display data from obsidian bases",
 	"author": "QuentinGruber",
-	"authorUrl": "https://quentingruber.dev",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://github.com/QuentinGruber",
 	"isDesktopOnly": false
 }
